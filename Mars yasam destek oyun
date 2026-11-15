@@ -1,0 +1,389 @@
+// Sude Karadeniz Yazılım Mühendisliği 1.sınıf
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#include <ctype.h>
+
+int main() {
+  
+    srand(time(NULL));
+
+    // Durum Değişkenleri atanır
+    int saglik = 100;
+    int enerji = 100;
+    int oksijen = 100;
+    int suMiktari = 50;
+    int yedekParcaSayisi = 5;
+    int modulHasari = 0;
+    int kilitMuhurlu = 0; // 0: Mühürsüz, 1: Mühürlü
+    int gunSayisi = 1;
+    int komutSayaci = 0;
+    
+    int firtinaSuresi = 3; // Zorluk derecesine göre belirlenir
+    char secim;
+    int oyunDevamEdiyor = 1;
+
+    printf("==================================================\n");
+    printf("   MARS KOLONISI YASAM DESTEK SIMULATORUNE HOS GELDINIZ\n");
+    printf("==================================================\n");
+    printf("Zorluk Seviyesi Seciniz:\n");
+    printf("K - Kolay\n");
+    printf("N - Normal\n");
+    printf("Z - Zor\n");
+    printf("Seciminiz: ");
+
+    // Zorluk Seçimi (SWITCH-CASE zorunluluğu ve fall-through kontrol edilir)
+    while (1) {
+        scanf(" %c", &secim);
+        secim = toupper(secim);
+        switch (secim) {
+            case 'K':
+                saglik = 100; enerji = 100; oksijen = 100;
+                suMiktari = 50; yedekParcaSayisi = 5; modulHasari = 0;
+                firtinaSuresi = 3;
+                printf("Zorluk: KOLAY secildi. Baslangic kaynaklari bol.\n");
+                break;
+            case 'N':
+                saglik = 90; enerji = 90; oksijen = 90;
+                suMiktari = 30; yedekParcaSayisi = 3; modulHasari = 15;
+                firtinaSuresi = 5;
+                printf("Zorluk: NORMAL secildi.\n");
+                break;
+            case 'Z':
+                saglik = 80; enerji = 80; oksijen = 80;
+                suMiktari = 15; yedekParcaSayisi = 1; modulHasari = 30;
+                firtinaSuresi = 7;
+                printf("Zorluk: ZOR secildi. Sartlar cok sert!\n");
+                break;
+            default:
+                printf("Gecersiz secim! Tekrar deneyin (K, N, Z): ");
+                continue;
+        }
+        break;
+    }
+
+    printf("\nSimulasyon basliyor! Kurtarma ekibi gelene kadar (15 gun) hayatta kalmaya calisin.\n");
+
+    // Ana Oyun Döngüsü mantığı kurulur
+    while (oyunDevamEdiyor) {
+        // --- SINIRLANDIRMA KONTROLÜ (0 - 100 aralığı) ---
+        if (saglik < 0) saglik = 0;
+        if (saglik > 100) saglik = 100;
+        if (enerji < 0) enerji = 0;
+        if (enerji > 100) enerji = 100;
+        if (oksijen < 0) oksijen = 0;
+        if (oksijen > 100) oksijen = 100;
+        if (modulHasari < 0) modulHasari = 0;
+        if (modulHasari > 100) modulHasari = 100;
+
+        // --- OYUN SONU KONTROLLERİ ---
+        if (saglik == 0 || oksijen == 0) {
+            printf("\n[OYUN BITTI] Saglik veya oksijen tukendi! Mars'ta hayatini kaybettin.\n");
+            oyunDevamEdiyor = 0;
+            break;
+        }
+        if (gunSayisi >= 15) {
+            printf("\n[TEBRIKLER] 15 gunu basariyla tamamladin! Kurtarma ekibi geldi ve kurtuldun!\n");
+            oyunDevamEdiyor = 0;
+            break;
+        }
+
+        printf("\n--------------------------------------------------\n");
+        printf(" GUN: %d | Tur Sayaci: %d | Hava Kilidi: %s\n", gunSayisi, komutSayaci, kilitMuhurlu ? "Muhurlu" : "Acik");
+        printf(" Durum -> Saglik: %d | Enerji: %d | Oksijen: %d | Su: %d | Yedek Parca: %d | Modul Hasari: %d\n", 
+               saglik, enerji, oksijen, suMiktari, yedekParcaSayisi, modulHasari);
+        printf("--------------------------------------------------\n");
+        printf("Komutlar: [G]esif, [O]ksijen uret, [T]amir, [D]urum raporu, [U]yu/Dinlen, [K]um firtinasi, [H]ava kilidi sifresi, [Q]Cikis\n");
+        printf("Komut seciniz: ");
+        scanf(" %c", &secim);
+        secim = toupper(secim);
+
+        // --- KOMUT SİSTEMİ (SWITCH-CASE ve Fall-Through) ---
+        switch (secim) {
+            case 'G': // Kesif
+            {
+                int bulunanSu;
+                int zar;
+
+                if (enerji < 15) {
+                    printf("Yetersiz kaynak: Enerjiniz 15'ten az oldugu icin kesif yapamazsiniz!\n");
+                    break;
+                }
+                enerji -= 15;
+                oksijen -= 10;
+
+                zar = rand() % 100;
+                if (zar < 40 && (enerji > 40 && oksijen > 30)) {
+                    bulunanSu = (rand() % 5) + 1;
+                    suMiktari += bulunanSu;
+                    printf("Kesif Sonucu -> Zar: %d / Esik: 40 -> BASARILI (Su bulundu: +%d birim)\n", zar, bulunanSu);
+                } else if (zar < 70 || modulHasari > 70) {
+                    yedekParcaSayisi += 1;
+                    printf("Kesif Sonucu -> Zar: %d / Esik: 70 -> BASARILI (Yedek parca bulundu: +1)\n", zar);
+                } else {
+                    saglik -= 10;
+                    printf("Kesif Sonucu -> Zar: %d / Esik: 70 -> BASARISIZ (Yaralandiniz: Saglik -10)\n", zar);
+                }
+                komutSayaci++;
+                break;
+            }
+
+            case 'O': // Oksijen Üretilir
+            {
+                int suDonustur;
+                int harcananSu;
+                int uretilenOksijen;
+
+                if (enerji < 10 || suMiktari < 2) {
+                    printf("Yetersiz kaynak: Enerji (en az 10) veya su (en az 2 birim) yetersiz!\n");
+                    break;
+                }
+                enerji -= 10;
+
+                printf("Mevcut su miktariniz: %d. Donusturulecek su miktarini girin (Cift sayi onerilir): ", suMiktari);
+                scanf("%d", &suDonustur);
+
+                if (suDonustur <= 0 || suDonustur > suMiktari) {
+                    printf("Gecersiz su miktari girdiniz! Komut iptal edildi.\n");
+                    enerji += 10; 
+                    break;
+                }
+                if (suDonustur > 100) {
+                    printf("Hata: Oksijen/Su islemlerinde 100 siniri asilamaz!\n");
+                    break;
+                }
+
+                harcananSu = suDonustur;
+                if (suDonustur % 2 != 0) {
+                    harcananSu = suDonustur - 1;
+                    printf("Tek sayida su girdiniz. 1 birim su depoda artik olarak kaldi.\n");
+                }
+
+                suMiktari -= harcananSu;
+                uretilenOksijen = (harcananSu / 2) * 3;
+                oksijen += uretilenOksijen;
+                if (oksijen > 100) oksijen = 100;
+
+                printf("Basariyla %d birim oksijen uretildi! Yeni oksijen: %d\n", uretilenOksijen, oksijen);
+                komutSayaci++;
+                break;
+            }
+
+            case 'T': // Tamir kontrol edilir
+            {
+                if (enerji < 20) {
+                    printf("Yetersiz kaynak: Tamir icin en az 20 enerji gerekiyor!\n");
+                    break;
+                }
+                if (yedekParcaSayisi <= 0) {
+                    printf("Yedek parcaniz yok! Tamir yapilamaz.\n");
+                    break;
+                }
+                enerji -= 20;
+
+                if (modulHasari >= 0 && modulHasari <= 30) {
+                    if (yedekParcaSayisi >= 1) {
+                        yedekParcaSayisi -= 1;
+                        modulHasari -= 15;
+                        printf("Hafif hasar giderildi (1 yedek parca harcandı).\n");
+                    } else {
+                        printf("Yeterli yedek parca yok!\n");
+                    }
+                } else if (modulHasari >= 31 && modulHasari <= 70) {
+                    if (yedekParcaSayisi >= 2) {
+                        yedekParcaSayisi -= 2;
+                        modulHasari -= 30;
+                        printf("Orta seviye hasar giderildi (2 yedek parca harcandı).\n");
+                    } else {
+                        printf("Orta seviye tamir icin en az 2 yedek parca lazim! Tamir basarisiz.\n");
+                    }
+                } else {
+                    if (yedekParcaSayisi >= 3) {
+                        yedekParcaSayisi -= 3;
+                        modulHasari -= 50;
+                        printf("Agir hasar giderildi! (3 yedek parca harcandı).\n");
+                    } else {
+                        printf("Agir hasar icin 3 yedek parca gerekiyor! Yedek parcaniz yetersiz.\n");
+                    }
+                }
+                komutSayaci++;
+                break;
+            }
+
+            case 'D': // Durum Raporu analiz edilir
+            {
+                printf("\n--- DETAYLI DURUM RAPORU ---\n");
+                printf(" Gun: %d\n", gunSayisi);
+                printf(" Saglik: %d (Sinir: 0-100)\n", saglik);
+                printf(" Enerji: %d (Sinir: 0-100)\n", enerji);
+                printf(" Oksijen: %d (Sinir: 0-100)\n", oksijen);
+                printf(" Su Miktari: %d\n", suMiktari);
+                printf(" Yedek Parca: %d\n", yedekParcaSayisi);
+                printf(" Modul Hasari: %d (Sinir: 0-100)\n", modulHasari);
+                printf(" Hava Kilidi Mühür Durumu: %s\n", kilitMuhurlu ? "Mühürlü (1)" : "Mühürsüz (0)");
+
+                if (oksijen < 25 || saglik < 30 || modulHasari > 70) {
+                    printf(" [KRİTİK UYARI] Hayati degerler tehlike sınırında veya modül hasarı çok yüksek!\n");
+                } else if (oksijen >= 25 && saglik >= 30 && modulHasari <= 70) {
+                    printf(" [DURUM] TÜM SİSTEMLER NORMAL.\n");
+                }
+                break;
+            }
+
+            case 'U': // Uyu / Dinlen
+            {
+                enerji += 25;
+                saglik += 10;
+                oksijen -= 5;
+                if (enerji > 100) enerji = 100;
+                if (saglik > 100) saglik = 100;
+                printf("Dinlendiniz. Enerji ve saglik artti, ancak hafif oksijen tuketildi.\n");
+                komutSayaci++;
+                break;
+            }
+
+            case 'K': // Kum Fırtınası durumu (FOR Döngüsü)
+            {
+                int toplamKaybedilenSaglik = 0;
+                int toplamKaybedilenOksijen = 0;
+                int hasarliTurSayisi = 0;
+                int i; // i değişkeni bloğun başında tanımlandı
+
+                printf("\n>>> KUM FIRTINASI BASLADI! (Sure: %d tur) <<<\n", firtinaSuresi);
+
+                for (i = 1; i <= firtinaSuresi; i++) {
+                    if (kilitMuhurlu == 1) {
+                        printf("Tur %d: Hava kilidi mühürlü! Kum fırtınası sızıntısı engellendi (continue çalıştı).\n", i);
+                        continue;
+                    }
+
+                    int zarFirtina = rand() % 100;
+                    int anlikSaglikKaybi = 5;
+                    int anlikOksijenKaybi = 8;
+
+                    if (i % 2 == 0) {
+                        anlikSaglikKaybi *= 2;
+                        anlikOksijenKaybi *= 2;
+                        printf("Tur %d (Çift Tur): Rüzgar şiddeti iki katına çıktı! (Mod operatorü aktif)\n", i);
+                    }
+
+                    saglik -= anlikSaglikKaybi;
+                    oksijen -= anlikOksijenKaybi;
+                    modulHasari += 10;
+
+                    toplamKaybedilenSaglik += anlikSaglikKaybi;
+                    toplamKaybedilenOksijen += anlikOksijenKaybi;
+                    hasarliTurSayisi++;
+
+                    printf("Tur %d: Fırtına hasarı! Saglik -%d, Oksijen -%d, Modul Hasari +10\n", i, anlikSaglikKaybi, anlikOksijenKaybi);
+
+                    if (saglik <= 0 || oksijen <= 0) {
+                        printf("Fırtına sırasında kritik eşik aşıldı! Fırtına acilen sonlandırılıyor (break çalıştı).\n");
+                        break;
+                    }
+                }
+
+                printf("\n--- FIRTINA OZETI ---\n");
+                printf("Hasar alinan tur sayisi: %d\n", hasarliTurSayisi);
+                printf("Toplam kaybedilen saglik: %d\n", toplamKaybedilenSaglik);
+                printf("Toplam kaybedilen oksijen: %d\n", toplamKaybedilenOksijen);
+
+                komutSayaci++;
+                break;
+            }
+
+            case 'H': // Hava Kilidi Şifresi (DO-WHILE Döngüsü)
+            {
+                char dogruSifre = 'A' + (gunSayisi % 26);
+                int denemeSayisi = 0;
+                int sifreBasarili = 0;
+                char girilenHarf;
+
+                printf("\n[HAVA KİLİDİ GÜVENLİK SİSTEMİ]\n");
+                printf("İpucu: Sifre, bugunun gun sayisi (%d) kadar alfabede 'A' harfinden ilerideki bir harftir.\n", gunSayisi);
+                printf("Tek karakterlik bir büyük veya küçük harf giriniz (3 deneme hakkiniz var).\n");
+
+                do {
+                    printf("Deneme %d/3 - Harf giriniz: ", denemeSayisi + 1);
+                    scanf(" %c", &girilenHarf);
+                    girilenHarf = toupper(girilenHarf);
+
+                    denemeSayisi++;
+
+                    if (girilenHarf == dogruSifre) {
+                        sifreBasarili = 1;
+                        break;
+                    } else {
+                        enerji -= 5;
+                        if (girilenHarf < dogruSifre) {
+                            printf("-> Ileri git (Girdiginiz harf sifreden once)\n");
+                        } else {
+                            printf("-> Geri git (Girdiginiz harf sifreden sonra)\n");
+                        }
+                    }
+
+                } while (denemeSayisi < 3 && !sifreBasarili);
+
+                if (sifreBasarili) {
+                    kilitMuhurlu = 1;
+                    printf("Tebrikler! Doğru şifre. Hava kilidi mühürlendi (kilitMuhurlu = 1).\n");
+                } else {
+                    modulHasari += 20;
+                    printf("3 deneme hakkı bitti! Şifre yanlış. Modül hasarı 20 artırıldı.\n");
+                }
+
+                komutSayaci++;
+                break;
+            }
+
+            case 'Q': // Çıkış
+            {
+                printf("Oyundan çıkılıyor...\n");
+                oyunDevamEdiyor = 0;
+                break;
+            }
+
+            default:
+            {
+                printf("Tanımsız komut girdiniz! Lütfen geçerli bir harf seçiniz (D ve tanımsız komutlar süre harcamaz).\n");
+                continue;
+            }
+        }
+
+        // --- ZAMAN AKIŞI (Her 3 geçerli turda 1 gün artar) ---
+        if (komutSayaci > 0 && komutSayaci % 3 == 0) {
+            gunSayisi++;
+            oksijen -= 8;
+            if (modulHasari > 70) {
+                saglik -= 5;
+                printf("\n[ZAMAN AKIŞI] Yeni bir gün başladı (Gün %d). Modül hasarı 70'in üzerinde olduğu için 5 sağlık kaybedildi!\n", gunSayisi);
+            } else {
+                printf("\n[ZAMAN AKIŞI] Yeni bir gün başladı (Gün %d).\n", gunSayisi);
+            }
+            komutSayaci = 0; 
+        }
+    }
+
+    // --- OYUN SONU RAPORU VE PUAN HESAPLAMA ---
+    {
+        int toplamPuan = (gunSayisi * 100) + saglik + oksijen - modulHasari;
+
+        printf("\n==================================================\n");
+        printf("               OYUN SONU RAPORU                   \n");
+        printf("==================================================\n");
+        printf(" Hayatta Kalınan Gun Sayısı : %d\n", gunSayisi);
+        printf(" Son Sağlık Değeri          : %d\n", saglik);
+        printf(" Son Enerji Değeri          : %d\n", enerji);
+        printf(" Son Oksijen Değeri         : %d\n", oksijen);
+        printf(" Kalan Su Miktarı           : %d\n", suMiktari);
+        printf(" Kalan Yedek Parça          : %d\n", yedekParcaSayisi);
+        printf(" Son Modül Hasarı           : %d\n", modulHasari);
+        printf(" Hava Kilidi Mühür Durumu   : %s\n", kilitMuhurlu ? "Mühürlü" : "Mühürsüz");
+        printf(" ------------------------------------------------\n");
+        printf(" TOPLAM PUANINIZ            : %d\n", toplamPuan);
+        printf("==================================================\n");
+    }
+
+    return 0;
+}
